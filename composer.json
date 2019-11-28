@@ -1,0 +1,28 @@
+{
+    "name": "imiphp/imi-grpc",
+    "type": "library",
+    "license": "MIT",
+    "description": "在 imi 框架中集成 gRPC 服务端、客户端",
+    "require": {
+        "imiphp/imi-rpc": "dev-master",
+        "grpc/grpc": "^1.7.0",
+        "google/protobuf": "^3.10.0",
+        "yurunsoft/yurun-http": "^3.3.0"
+    },
+    "require-dev": {
+        "yurunsoft/imi": "dev-dev"
+    },
+    "autoload": {
+        "psr-4" : {
+            "Imi\\Grpc\\" : "src/grpc",
+            "Imi\\Server\\Grpc\\": "src/server/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4" : {
+            "ImiApp\\" : "example/",
+            "Grpc\\": "example/grpc/Grpc",
+            "GPBMetadata\\": "example/grpc/GPBMetadata"
+        }
+    }
+}
