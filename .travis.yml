@@ -61,7 +61,6 @@ before_script:
   - export TEST_PHPUNIT_PATH=~/.phpenv/versions/$(phpenv version-name)/bin/phpunit
   - php ./.travis/composer-no-phpunit.php
   - composer update
-  - cd ./tests && composer update && cd ../
   - php --ri swoole
 
 script:
