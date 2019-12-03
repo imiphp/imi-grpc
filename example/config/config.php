@@ -24,14 +24,12 @@ return [
 
     // 主服务器配置
     'mainServer'    =>    [
-        'namespace'    =>    'ImiApp\GrpcServer',
-        'type'        =>    'Grpc',
-        'host'        =>    '127.0.0.1',
-        'port'        =>    8080,
-        'configs'    =>    [
+        'namespace' =>    'ImiApp\GrpcServer',
+        'type'      =>    'Grpc',
+        'host'      =>    '127.0.0.1',
+        'port'      =>    8080,
+        'configs'   =>    [
             'worker_num'        =>  1,
-            // 'task_worker_num'   =>  16,
-            'open_http2_protocol'   =>  true,
         ],
     ],
 

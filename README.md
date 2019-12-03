@@ -1,15 +1,15 @@
-# imi-hprose
+# imi-grpc
 
-[![Latest Version](https://img.shields.io/packagist/v/imiphp/imi-hprose.svg)](https://packagist.org/packages/imiphp/imi-hprose)
+[![Latest Version](https://img.shields.io/packagist/v/imiphp/imi-grpc.svg)](https://packagist.org/packages/imiphp/imi-grpc)
 [![Php Version](https://img.shields.io/badge/php-%3E=7.1-brightgreen.svg)](https://secure.php.net/)
 [![Swoole Version](https://img.shields.io/badge/swoole-%3E=4.1.0-brightgreen.svg)](https://github.com/swoole/swoole-src)
-[![IMI License](https://img.shields.io/github/license/imiphp/imi-hprose.svg)](https://github.com/imiphp/imi-hprose/blob/master/LICENSE)
+[![IMI License](https://img.shields.io/github/license/imiphp/imi-grpc.svg)](https://github.com/imiphp/imi-grpc/blob/master/LICENSE)
 
 ## 介绍
 
-在 imi 框架中集成 Hprose 服务开发，目前支持`TCP`、`Unix Socket`协议。
+在 imi 框架中集成 gRPC 服务开发、客户端调用及连接池。
 
-未来将实现：中间件、过滤器、`Http` 协议、`WebSocket` 协议……
+通讯协议为二进制的 Protobuf。
 
 ## Composer
 
@@ -18,14 +18,51 @@
 ```json
 {
     "require": {
-        "imiphp/imi-hprose": "^1.2"
+        "imiphp/imi-grpc": "^1.0.0"
     }
 }
 ```
 
 然后执行 `composer update` 安装。
 
-## 服务端
+## 使用说明
+
+可以参考 `example` 目录示例，包括完整的服务端和客户端调用。
+
+### 服务和消息格式定义
+
+gRPC 和 Protobuf 是黄金搭档，Protobuf 是用来做通讯消息格式的序列化和反序列化的工作。
+
+gRPC 通讯有请求（Request）消息和响应（Response）消息，从请求消息中获取请求参数，通过响应消息返回给客户端。
+
+定义参考：`example/grpc/grpc.proto`
+
+```proto
+syntax = "proto3";
+
+package grpc;
+option php_generic_services = true;
+
+service AuthService {
+    rpc Login (LoginRequest) returns (LoginResponse);
+}
+
+message LoginRequest {
+    string phone = 1;       // 手机号
+    string password = 2;    // 密码
+}
+
+message LoginResponse {
+    bool success = 1;       // 是否成功
+    string error = 2;       // 错误信息
+}
+```
+
+定义好后，通过命令生成 PHP 文件：`protoc --php_out=./ grpc.proto`
+
+protoc 下载和安装：<https://github.com/protocolbuffers/protobuf/releases>
+
+### 服务端
 
 在项目 `config/config.php` 中配置：
 
@@ -33,8 +70,8 @@
 [
     'components'    =>  [
         // 引入RPC组件以及本组件
-        'Rpc'    	=>  'Imi\Rpc',
-        'Hprose'    =>  'Imi\Hprose',
+        'Rpc'   =>  'Imi\Rpc',
+        'Grpc'  =>  'Imi\Grpc',
     ],
 ]
 ```
@@ -44,11 +81,12 @@
 ```php
 [
     // 主服务器配置
-	'mainServer'	=>	[
-		'namespace'	=>	'XXX\MainServer', // 你的命名空间
-		'type'		=>	'Hprose', // 必须设为 Hprose
-		'port'		=>	8080,
-	],
+    'mainServer'    =>  [
+        'namespace' =>    'ImiApp\GrpcServer',
+        'type'      =>    'Grpc',
+        'host'      =>    '127.0.0.1',
+        'port'      =>    8080,
+    ],
 ]
 ```
 
@@ -57,91 +95,79 @@
 ```php
 [
     // 子服务器（端口监听）配置
-	'subServers'		=>	[
-		// 子服务器名
-		'XXX'	=>	[
-			'namespace'	=>	'XXX\Hprose', // 你的命名空间
-			'type'		=>	'Hprose', // 必须设为 Hprose
-			'port'		=>	50001,
-		]
-	],
+    'subServers'    =>  [
+        // 子服务器名
+        'XXX'   =>  [
+            'namespace' =>    'ImiApp\GrpcServer',
+            'type'      =>    'Grpc',
+            'host'      =>    '127.0.0.1',
+            'port'      =>    8080,
+        ]
+    ],
 ]
 ```
 
-### 控制器基类
+#### 控制器
 
-`Imi\Rpc\Controller\RpcController`
+写法与 Http Api 几乎一致。
 
-### 控制器注解
+标准 gRPC Url 格式为：`http://host:port/{package}.{service}/{method}`
 
-`\Imi\Rpc\Route\Annotation\RpcController`
+```php
+/**
+ * @Controller("/grpc.AuthService/")
+ */
+class AuthServiceController extends HttpController implements AuthServiceInterface
+{
+    /**
+     * Method <code>login</code>
+     *
+     * @Action
+     * 
+     * @param \Grpc\LoginRequest $request
+     * @return \Grpc\LoginResponse
+     */
+    public function login(\Grpc\LoginRequest $request)
+    {
+        $response = new LoginResponse;
+        $success = '12345678901' === $request->getPhone() && '123456' === $request->getPassword();
+        $response->setSuccess($success);
+        $response->setError($success ? '' : '登录失败');
+        return $response;
+    }
 
-用法：
+}
+```
 
-`@RpcController`
+### 客户端
 
-别名前缀：`@RpcController('a_b_')`
-
-### 动作注解
-
-`\Imi\Rpc\Route\Annotation\RpcAction`
-
-无参
-
-### 路由注解
-
-`\Imi\Hprose\Route\Annotation\HproseRoute`
-
-参数：
-
-- `name` 路由名称规则。一般也是方法名，如果设置了别名，则最终为别名+方法名
-- `mode` 该设置表示该服务函数返回的结果类型，具体值请参考 Hprose 文档
-- `simple` 该设置表示本服务函数所返回的结果是否为简单数据。默认值为 false。
-- `oneway` 该设置表示本服务函数是否不需要等待返回值。当该设置为 true 时，调用会异步开始，并且不等待结果，立即返回 null 给客户端。默认值为 false。
-- `async` 该设置表示本服务函数是否为异步函数，异步函数的最后一个参数是一个回调函数，用户需要在异步函数中调用该回调方法来传回返回值
-- `passContext` 该属性为 boolean 类型，默认值为 false。具体请参考 Hprose 文档
-
-> Hprose 文档参考：https://github.com/hprose/hprose-php/wiki/06-Hprose-服务器#addfunction-%E6%96%B9%E6%B3%95
-
-## 客户端
-
-### 连接池配置
+#### 连接池配置
 
 ```php
 [
-	'pools'	=>	[
-		'连接池名'	=>	[
-			'sync'	=>	[
-				'pool'	=>	[
-					'class'		=>	\Imi\Rpc\Client\Pool\RpcClientSyncPool::class,
-					'config'	=>	[
-						// 连接池通用，查阅文档
-					],
-				],
-				'resource'	=>	[
-					'clientClass'	=>	\Imi\Hprose\Client\HproseSocketClient::class,
-					'uris'	=>	'tcp://127.0.0.1:50001', // 连接地址
-					// 其它配置
-				]
-			],
-			'async'	=>	[
-				'pool'	=>	[
-					'class'		=>	\Imi\Rpc\Client\Pool\RpcClientCoroutinePool::class,
-					'config'	=>	[
-						// 连接池通用，查阅文档
-					],
-				],
-				'resource'	=>	[
-					'clientClass'	=>	\Imi\Hprose\Client\HproseSocketClient::class,
-					'uris'	=>	'tcp://127.0.0.1:50001', // 连接地址
-					// 其它配置
-				]
-			],
-		],
-	],
-	'rpc'	=>	[
-		'defaultPool'	=>	'连接池名', // 默认连接池名
-	],
+    // 连接池配置
+    'pools'    =>    [
+        'grpc'  =>  [
+            'async'    =>    [
+                'pool'    =>    [
+                    'class'        =>    \Imi\Rpc\Client\Pool\RpcClientCoroutinePool::class,
+                    'config'    =>    [
+                        // 根据实际情况设置
+                        'maxResources'  =>    100,
+                        'minResources'  =>    1,
+                    ],
+                ],
+                'resource'    =>    [
+                    // 这里需要和你的服务端路由一致
+                    'url'   =>  'http://127.0.0.1:8080/{package}.{service}/{name}',
+                    'clientClass'   =>  \Imi\Grpc\Client\GrpcClient::class,
+                ]
+            ],
+        ],
+    ],
+    'rpc'   =>  [
+        'defaultPool'   =>  'grpc',
+    ],
 ]
 ```
 
@@ -150,38 +176,51 @@
 代码调用：
 
 ```php
-\Imi\Rpc\Client\Pool\RpcClientPool::getService('服务名')->方法名(参数);
+// $service = \Imi\Rpc\Client\Pool\RpcClientPool::getClient('连接池名')->getService('服务名', '生成出来的服务接口类名');
+$service = \Imi\Rpc\Client\Pool\RpcClientPool::getClient()->getService('AuthService', \Grpc\AuthServiceInterface::class);
+$request = new \Grpc\LoginRequest;
+$request->setPhone('');
+$service->login($request);
 ```
 
 注解调用：
 
 ```php
+use Imi\Rpc\Annotation\RpcClient;
+use Imi\Grpc\Client\Annotation\GrpcService;
+
 class Test
 {
-	/**
-	 * @RpcClient()
-	 *
-	 * @var \Imi\Rpc\Client\IRpcClient
-	 */
-	protected $rpcClient;
+    /**
+     * @RpcClient()
+     *
+     * @var \Imi\Rpc\Client\IRpcClient
+     */
+    protected $rpcClient;
 
-	/**
-	 * @RpcService(serviceName="服务名")
-	 *
-	 * @var \Imi\Rpc\Client\IService
-	 */
-	protected $xxxRpc;
+    /**
+     * @GrpcService(serviceName="grpc.AuthService", interface=\Grpc\AuthServiceInterface::class)
+     *
+     * @var \Grpc\AuthServiceInterface
+     */
+    protected $authService;
 
-	public function aaa()
-	{
-		// 方法一
-		$this->rpcClient->getService('服务名')->方法名(参数);
+    public function aaa()
+    {
+        $request = new \Grpc\LoginRequest;
+        $request->setPhone('');
 
-		// 方法二
-		$this->xxxRpc->方法名(参数);
-	}
+        // 方法一
+        $this->rpcClient->getService('服务名', '生成出来的服务接口类名')->方法名($request);
+
+        // 方法二
+        $this->xxxRpc->方法名($request);
+    }
 }
 ```
+
+`@GrpcService` 注解的 `serviceName` 属性格式为 `{package}.{service}`；
+`interface` 属性是生成出来的服务接口类名
 
 ## 免费技术支持
 
@@ -191,14 +230,14 @@ QQ群：17916227 [![点击加群](https://pub.idqqimg.com/wpa/images/group.png "
 
 - [PHP](https://php.net/) >= 7.1
 - [Composer](https://getcomposer.org/)
-- [Swoole](https://www.swoole.com/) >= 4.1.0
+- [Swoole](https://www.swoole.com/) >= 4.4.0
 
 ## 版权信息
 
-`imi-hprose` 遵循 MIT 开源协议发布，并提供免费使用。
+`imi-grpc` 遵循 MIT 开源协议发布，并提供免费使用。
 
 ## 捐赠
 
-<img src="https://raw.githubusercontent.com/imiphp/imi-hprose/dev/res/pay.png"/>
+<img src="https://raw.githubusercontent.com/imiphp/imi-grpc/dev/res/pay.png"/>
 
 开源不求盈利，多少都是心意，生活不易，随缘随缘……
