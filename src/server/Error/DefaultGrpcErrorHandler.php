@@ -20,11 +20,11 @@ class DefaultGrpcErrorHandler implements IErrorHandler
         }
         if(!$response->getTrailer('grpc-status'))
         {
-            $response->withTrailer('grpc-status', $this->getGrpcStatus($throwable));
+            $response = $response->withTrailer('grpc-status', $this->getGrpcStatus($throwable));
         }
         if(!$response->getTrailer('grpc-message'))
         {
-            $response->withTrailer('grpc-message', $this->getGrpcMessage($throwable));
+            $response = $response->withTrailer('grpc-message', $this->getGrpcMessage($throwable));
         }
         $response->send();
         return false;

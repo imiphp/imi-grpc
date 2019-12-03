@@ -43,6 +43,7 @@ class ActionMiddleware implements MiddlewareInterface
     {
         // 获取Response对象
         $response = $handler->handle($request);
+        // 获取路由结果
         $context = RequestContext::getContext();
         $context['response'] = $response;
         /** @var \Imi\Server\Http\Route\RouteResult $result */
@@ -64,18 +65,60 @@ class ActionMiddleware implements MiddlewareInterface
         }
         // 执行动作
         $actionResult = ($result->callable)(...$this->prepareActionParams($request, $result));
-
-        if($useObjectRequestAndResponse)
+        // 视图
+        $finalResponse = null;
+        if($actionResult instanceof Response)
         {
-            // 获得控制器中的Response
-            $response = $result->callable[0]->response;
+            $finalResponse = $actionResult;
         }
-        else
+        else 
         {
-            $response = $context['response'];
+            if($useObjectRequestAndResponse)
+            {
+                // 获得控制器中的Response
+                $finalResponse = $result->callable[0]->response;
+            }
+            else
+            {
+                $finalResponse = $context['response'];
+            }
+            if($actionResult instanceof \Google\Protobuf\Internal\Message)
+            {
+                $finalResponse = $finalResponse->withBody(new MemoryStream(Parser::serializeMessage($actionResult)));
+            }
+            else
+            {
+                if($actionResult instanceof \Imi\Server\View\Annotation\View)
+                {
+                    // 动作返回的值是@View注解
+                    $viewAnnotation = $actionResult;
+                }
+                else
+                {
+                    // 获取对应动作的视图注解
+                    $viewAnnotation = clone $result->routeItem->view;
+                    if(null !== $viewAnnotation)
+                    {
+                        if([] !== $viewAnnotation->data && is_array($actionResult))
+                        {
+                            // 动作返回值是数组，合并到视图注解
+                            $viewAnnotation->data = array_merge($viewAnnotation->data, $actionResult);
+                        }
+                        else
+                        {
+                            // 非数组直接赋值
+                            $viewAnnotation->data = $actionResult;
+                        }
+                    }
+                }
+                // 视图渲染
+                $options = $viewAnnotation->toArray();
+                $finalResponse = $this->view->render($viewAnnotation->renderType, $viewAnnotation->data, $options, $finalResponse);
+            }
         }
 
-        return $response->withBody(new MemoryStream(Parser::serializeMessage($actionResult)));
+        return $finalResponse;
+
     }
     
     /**

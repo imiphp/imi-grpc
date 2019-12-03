@@ -2,15 +2,15 @@
     "name": "imiphp/imi-grpc",
     "type": "library",
     "license": "MIT",
-    "description": "在 imi 框架中集成 gRPC 服务端、客户端",
+    "description": "在 imi 框架中集成 gRPC 服务开发、客户端调用及连接池",
     "require": {
         "imiphp/imi-rpc": "dev-master",
-        "grpc/grpc": "^1.7.0",
         "google/protobuf": "^3.10.0",
-        "yurunsoft/yurun-http": "^3.3.0"
+        "yurunsoft/yurun-http": "^3.4.0"
     },
     "require-dev": {
-        "yurunsoft/imi": "dev-dev"
+        "yurunsoft/imi": "dev-dev",
+        "phpunit/phpunit": "^7"
     },
     "autoload": {
         "psr-4" : {
@@ -22,7 +22,12 @@
         "psr-4" : {
             "ImiApp\\" : "example/",
             "Grpc\\": "example/grpc/Grpc",
-            "GPBMetadata\\": "example/grpc/GPBMetadata"
+            "GPBMetadata\\": "example/grpc/GPBMetadata",
+            "Imi\\Grpc\\Test\\": "tests/Grpc"
         }
+    },
+    "scripts": {
+        "test": "./tests/run",
+        "install-test": "php --ri swoole && composer install && cd ./tests && composer install && cd ../ && composer test"
     }
 }

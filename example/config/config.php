@@ -1,4 +1,7 @@
 <?php
+
+use Imi\Grpc\Client\GrpcClient;
+
 return [
     // 项目根命名空间
     'namespace'    =>    'ImiApp',
@@ -21,12 +24,12 @@ return [
 
     // 主服务器配置
     'mainServer'    =>    [
-        'namespace'    =>    'ImiApp\ApiServer',
+        'namespace'    =>    'ImiApp\GrpcServer',
         'type'        =>    'Grpc',
         'host'        =>    '127.0.0.1',
         'port'        =>    8080,
         'configs'    =>    [
-            // 'worker_num'        =>  8,
+            'worker_num'        =>  1,
             // 'task_worker_num'   =>  16,
             'open_http2_protocol'   =>  true,
         ],
@@ -34,12 +37,12 @@ return [
 
     // 子服务器（端口监听）配置
     'subServers'        =>    [
-        // 'SubServerName'   =>  [
-        //     'namespace'    =>    'ImiApp\XXXServer',
-        //     'type'        =>    Imi\Server\Type::HTTP,
-        //     'host'        =>    '127.0.0.1',
-        //     'port'        =>    13005,
-        // ]
+        'SubServerName'   =>  [
+            'namespace'    =>    'ImiApp\ApiServer',
+            'type'        =>    Imi\Server\Type::HTTP,
+            'host'        =>    '127.0.0.1',
+            'port'        =>    8081,
+        ]
     ],
 
     // 连接池配置
@@ -71,6 +74,21 @@ return [
                     'host'      => '127.0.0.1',
                     'port'      => 6379,
                     'password'  => null,
+                ]
+            ],
+        ],
+        'grpc'  =>  [
+            'async'    =>    [
+                'pool'    =>    [
+                    'class'        =>    \Imi\Rpc\Client\Pool\RpcClientCoroutinePool::class,
+                    'config'    =>    [
+                        'maxResources'  =>    100,
+                        'minResources'  =>    1,
+                    ],
+                ],
+                'resource'    =>    [
+                    'url'   =>  'http://127.0.0.1:8080/{package}.{service}/{name}',
+                    'clientClass'   =>  GrpcClient::class,
                 ]
             ],
         ],
@@ -107,5 +125,9 @@ return [
                 ],
             ],
         ],
+    ],
+
+    'rpc'   =>  [
+        'defaultPool'   =>  'grpc',
     ],
 ];

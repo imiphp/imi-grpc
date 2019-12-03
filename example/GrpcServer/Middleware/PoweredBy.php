@@ -1,5 +1,5 @@
 <?php
-namespace ImiApp\ApiServer\Middleware;
+namespace ImiApp\GrpcServer\Middleware;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;

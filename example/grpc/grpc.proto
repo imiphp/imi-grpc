@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 package grpc;
+option php_generic_services = true;
 
 service AuthService {
     rpc Login (LoginRequest) returns (LoginResponse);
