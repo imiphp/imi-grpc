@@ -4,7 +4,7 @@
     "license": "MIT",
     "description": "在 imi 框架中集成 gRPC 服务开发、客户端调用及连接池",
     "require": {
-        "imiphp/imi-rpc": "dev-master",
+        "imiphp/imi-rpc": "^1.3.0",
         "google/protobuf": "^3.10.0",
         "yurunsoft/yurun-http": "^3.4.0"
     },
