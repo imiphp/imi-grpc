@@ -1,5 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env php
+<?php
+$vendor = dirname(__DIR__, 2) . '/vendor/';
+$loader = require_once $vendor . 'autoload.php';
 
-__DIR__=$(cd `dirname $0`; pwd)
+\Imi\App::setLoader($loader);
 
-${__DIR__}/../../vendor/bin/imi $* -appNamespace "ImiApp"
+\Imi\App::setDebug(true);
+
+require $vendor . 'bin/imi';

@@ -36,7 +36,7 @@ function startServer()
     $servers = [
         'Http2Server'    =>  [
             'start'         => $dirname . '/example/bin/start-server.sh',
-            'stop'          => $dirname . '/example/bin/start-server.sh',
+            'stop'          => $dirname . '/example/bin/stop-server.sh',
             'checkStatus'   => 'checkHttp2ServerStatus',
         ],
     ];
@@ -69,7 +69,9 @@ function startServer()
         // 增加任务，异步回调
         $pool->addTaskAsync(function() use($options, $name){
             // start server
-            $cmd = 'nohup ' . $options['start'] . ' > /dev/null 2>&1';
+            // $cmd = 'nohup ' . $options['start'] . ' > /dev/null 2>&1';
+            $cmd = $options['start'];
+            var_dump($cmd);
             echo "Starting {$name}...", PHP_EOL;
             `{$cmd}`;
 

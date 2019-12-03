@@ -66,3 +66,6 @@ before_script:
 script:
   - ./tests/run
 
+after_failure:
+  - php ./.travis/output-server-log.php
+  
