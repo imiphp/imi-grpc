@@ -27,7 +27,7 @@ class Server extends \Imi\Server\Http\Server
     {
         $this->initGrpcServer();
         $this->config['configs']['open_http2_protocol'] = true;
-        parent::createServer();
+        parent::createSubServer();
     }
 
     /**
