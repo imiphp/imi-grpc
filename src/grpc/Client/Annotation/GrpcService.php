@@ -2,6 +2,7 @@
 namespace Imi\Grpc\Client\Annotation;
 
 use Imi\Bean\Annotation\Parser;
+use Imi\Bean\BeanFactory;
 use Imi\Rpc\Annotation\RpcService;
 use Imi\Rpc\Client\Pool\RpcClientPool;
 
@@ -41,9 +42,7 @@ class GrpcService extends RpcService
      */
     public function getRealValue()
     {
-        /** @var \Imi\Grpc\Client\GrpcClient $client */
-        $client = RpcClientPool::getInstance($this->poolName);
-        return $client->getService($this->serviceName, $this->interface);
+        return BeanFactory::newInstance(\Imi\Grpc\Client\ServiceAgent::class, $this->poolName, $this->serviceName, $this->interface);
     }
 
 }
