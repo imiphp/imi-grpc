@@ -54,7 +54,11 @@ class GrpcService implements IGrpcService
         $this->client = $client;
         $this->name = $name;
         $this->interface = $interface;
-        [$this->package, $this->serviceName] = explode('.', $name);
+        if(preg_match('/^(.+)\.([^\.]+)$/', $name, $matches) > 0)
+        {
+            $this->package = $matches[1];
+            $this->serviceName = $matches[2];
+        }
     }
 
     /**
