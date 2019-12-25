@@ -3,6 +3,7 @@ namespace Imi\Grpc\Client;
 
 use Imi\Bean\BeanFactory;
 use Imi\Grpc\Parser;
+use Imi\Log\Log;
 use Imi\Rpc\Client\IService;
 use Imi\Rpc\Client\IRpcClient;
 use Imi\Util\Uri;
@@ -175,7 +176,12 @@ class GrpcClient implements IRpcClient
         {
             throw new \RuntimeException(sprintf('gRPC recv() failed, errCode:%s, errorMsg:%s', $result->getErrno(), $result->getError()));
         }
-        return Parser::deserializeMessage([$responseClass, 'decode'], $result->body());
+        $return = Parser::deserializeMessage([$responseClass, 'decode'], $result->body());
+        if(!$return)
+        {
+            Log::debug(sprintf('GrpcClient deserializeMessage failed. statusCode: %s', $result->getStatusCode()));
+        }
+        return $return;
     }
 
     /**
