@@ -197,11 +197,14 @@ class GrpcClient implements IRpcClient
      */
     public function buildRequestUrl($package, $service, $name)
     {
-        return strtr($this->url, [
-            '{package}' =>  $package,
-            '{service}' =>  $service,
-            '{name}'    =>  $name,
-        ]);
+        return preg_replace_callback('/\{([^\|\}]+)\|?([^\}]*)\}/', function($match) use($package, $service, $name){
+            $value = ${$match[1]} ?? '';
+            if('' !== $match[2])
+            {
+                $value = $match[2]($value);
+            }
+            return $value;
+        }, $this->url);
     }
 
 }
