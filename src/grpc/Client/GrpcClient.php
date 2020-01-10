@@ -6,6 +6,7 @@ use Imi\Grpc\Parser;
 use Imi\Log\Log;
 use Imi\Rpc\Client\IService;
 use Imi\Rpc\Client\IRpcClient;
+use Imi\Util\Http\Consts\MediaType;
 use Imi\Util\Uri;
 use Yurun\Util\HttpRequest;
 use Yurun\Util\YurunHttp\Http2\SwooleClient;
@@ -150,7 +151,9 @@ class GrpcClient implements IRpcClient
     {
         $url = $this->buildRequestUrl($package, $service, $name);
         $content = Parser::serializeMessage($message);
-        $request = $this->httpRequest->buildRequest($url, $content, $this->requestMethod);
+        $request = $this->httpRequest->buildRequest($url, $content, $this->requestMethod)
+        ->withHeader('Content-Type', MediaType::GRPC)
+        ->withHeader('te', 'trailers');
         if($metadata)
         {
             foreach($metadata as $k => $v)
