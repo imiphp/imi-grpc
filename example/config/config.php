@@ -85,8 +85,9 @@ return [
                     ],
                 ],
                 'resource'    =>    [
-                    'url'   =>  'http://127.0.0.1:8080/{package}.{service}/{name}',
+                    'url'           =>  'http://127.0.0.1:8080/{package}.{service}/{name}',
                     'clientClass'   =>  GrpcClient::class,
+                    'timeout'       =>  30,
                 ]
             ],
         ],

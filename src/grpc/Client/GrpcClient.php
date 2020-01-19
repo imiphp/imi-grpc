@@ -52,6 +52,13 @@ class GrpcClient implements IRpcClient
     protected $requestMethod;
 
     /**
+     * 超时时间，单位：秒
+     *
+     * @var float
+     */
+    protected $timeout;
+
+    /**
      * HttpRequest
      *
      * @var \Yurun\Util\HttpRequest
@@ -72,6 +79,7 @@ class GrpcClient implements IRpcClient
         $this->url = $options['url'];
         $this->uri = new Uri($this->url);
         $this->requestMethod = $options['method'] ?? 'GET';
+        $this->timeout = $options['timeout'] ?? null;
         $this->options = $options;
     }
 
@@ -83,7 +91,12 @@ class GrpcClient implements IRpcClient
     {
         $this->httpRequest = new HttpRequest;
         $this->http2Client = new SwooleClient($this->uri->getHost(), Uri::getServerPort($this->uri), 'https' === $this->uri->getScheme());
-        return $this->http2Client->connect();
+        $result = $this->http2Client->connect();
+        if($result && $this->timeout)
+        {
+            $this->http2Client->setTimeout($this->timeout);
+        }
+        return $result;
     }
 
     /**
