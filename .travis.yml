@@ -4,6 +4,22 @@ language: php
 matrix:
   include:
   - php: '7.1'
+    env: SWOOLE_VERSION="v4.5.5"
+  - php: '7.2'
+    env: SWOOLE_VERSION="v4.5.5"
+  - php: '7.3'
+    env: SWOOLE_VERSION="v4.5.5"
+  - php: '7.4'
+    env: SWOOLE_VERSION="v4.5.5"
+  - php: '7.1'
+    env: SWOOLE_VERSION="v4.4.21"
+  - php: '7.2'
+    env: SWOOLE_VERSION="v4.4.21"
+  - php: '7.3'
+    env: SWOOLE_VERSION="v4.4.21"
+  - php: '7.4'
+    env: SWOOLE_VERSION="v4.4.21"
+  - php: '7.1'
     env: SWOOLE_VERSION="master"
   - php: '7.2'
     env: SWOOLE_VERSION="master"
@@ -13,14 +29,6 @@ matrix:
     env: SWOOLE_VERSION="master"
   - php: 'nightly'
     env: SWOOLE_VERSION="master" DISABLE_XDEBUG=false INSTALL_REDIS_EXT=true
-  - php: '7.1'
-    env: SWOOLE_VERSION="v4.4.14"
-  - php: '7.2'
-    env: SWOOLE_VERSION="v4.4.14"
-  - php: '7.3'
-    env: SWOOLE_VERSION="v4.4.14"
-  - php: '7.4'
-    env: SWOOLE_VERSION="v4.4.14"
   allow_failures:
   - env: SWOOLE_VERSION="master"
   - php: nightly
