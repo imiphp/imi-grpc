@@ -170,7 +170,7 @@ class ActionMiddleware implements MiddlewareInterface
         {
             if($type = $param->getType())
             {
-                $type = (string)$type;
+                $type = $type->getName();
                 if(is_subclass_of($type, \Google\Protobuf\Internal\Message::class))
                 {
                     $value = Parser::deserializeMessage([$type, null], (string)$request->getBody());
