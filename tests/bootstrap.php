@@ -14,10 +14,16 @@ function checkHttpServerStatus()
     for ($i = 0; $i < 60; ++$i)
     {
         sleep(1);
-        $context = stream_context_create(['http' => ['timeout' => 1]]);
-        if ('' === @file_get_contents('http://127.0.0.1:8081/', false, $context))
+        try
         {
-            return true;
+            $context = stream_context_create(['http' => ['timeout' => 20]]);
+            if ('' === @file_get_contents('http://127.0.0.1:8081/', false, $context))
+            {
+                return true;
+            }
+        }
+        catch (ErrorException $e)
+        {
         }
     }
 
@@ -43,13 +49,13 @@ function startServer()
     $callbacks = [];
     foreach ($servers as $name => $options)
     {
-        $callbacks[] = function () use ($options, $name) {
+        $callbacks[] = static function () use ($options, $name) {
             // start server
             $cmd = 'nohup ' . $options['start'] . ' > /dev/null 2>&1';
             echo "Starting {$name}...", \PHP_EOL;
             shell_exec($cmd);
 
-            register_shutdown_function(function () use ($name, $options) {
+            register_shutdown_function(static function () use ($name, $options) {
                 \Swoole\Runtime::enableCoroutine(false);
                 // stop server
                 $cmd = $options['stop'];
@@ -70,6 +76,9 @@ function startServer()
     }
 
     batch($callbacks, 120, max(swoole_cpu_num() - 1, 1));
+    register_shutdown_function(static function () {
+        checkPorts([8081]);
+    });
 }
 
 startServer();

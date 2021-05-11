@@ -1,11 +1,10 @@
 {
     "name": "imiphp/imi-grpc",
     "type": "library",
-    "license": "MIT",
+    "license": "MulanPSL-2.0",
     "description": "在 imi 框架中集成 gRPC 服务开发、客户端调用及连接池",
     "require": {
-        "php": ">=7.4 <8.2",
-        "imiphp/imi-rpc": "~2.0.0",
+        "imiphp/imi-rpc": "~3.0.0",
         "yurunsoft/yurun-http": "^4.0.0",
         "google/protobuf": "^3.10.0"
     },
@@ -26,7 +25,8 @@
         },
         "files": [
             "../../../vendor/autoload.php",
-            "../../../dev/try-include-swoole.php"
+            "../../../dev/try-include-swoole.php",
+            "../rpc/vendor/autoload.php"
         ]
     },
     "scripts": {
@@ -34,5 +34,7 @@
         "pre-update-cmd": "Imi\\Grpc\\Dev\\Dev::preUpdate",
         "post-install-cmd": "Imi\\Grpc\\Dev\\Dev::postUpdate",
         "post-update-cmd": "Imi\\Grpc\\Dev\\Dev::postUpdate"
-    }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }
