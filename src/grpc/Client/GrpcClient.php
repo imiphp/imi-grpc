@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Imi\Grpc\Client;
 
 use Imi\Bean\BeanFactory;
@@ -19,52 +21,38 @@ class GrpcClient implements IRpcClient
 {
     /**
      * 配置.
-     *
-     * @var array
      */
-    protected $options;
+    protected array $options;
 
     /**
      * Http2 客户端.
-     *
-     * @var \Yurun\Util\YurunHttp\Http2\SwooleClient
      */
-    protected $http2Client;
+    protected SwooleClient $http2Client;
 
     /**
      * url.
-     *
-     * @var string
      */
-    protected $url;
+    protected string $url;
 
     /**
      * uri 对象
-     *
-     * @var \Imi\Util\Uri
      */
-    protected $uri;
+    protected Uri $uri;
 
     /**
      * 请求方法.
-     *
-     * @var string
      */
-    protected $requestMethod;
+    protected string $requestMethod;
 
     /**
      * 超时时间，单位：秒.
-     *
-     * @var float
      */
-    protected $timeout;
+    protected ?float $timeout;
 
     /**
      * HttpRequest.
-     *
-     * @var \Yurun\Util\HttpRequest
      */
-    protected $httpRequest;
+    protected HttpRequest $httpRequest;
 
     /**
      * 构造方法.
@@ -86,10 +74,8 @@ class GrpcClient implements IRpcClient
 
     /**
      * 打开
-     *
-     * @return bool
      */
-    public function open()
+    public function open(): bool
     {
         $this->httpRequest = new HttpRequest();
         $this->http2Client = new SwooleClient($this->uri->getHost(), Uri::getServerPort($this->uri), 'https' === $this->uri->getScheme());
@@ -104,18 +90,14 @@ class GrpcClient implements IRpcClient
 
     /**
      * 关闭.
-     *
-     * @return void
      */
-    public function close()
+    public function close(): void
     {
         $this->http2Client->close();
     }
 
     /**
      * 是否已连接.
-     *
-     * @return bool
      */
     public function isConnected(): bool
     {
@@ -124,10 +106,8 @@ class GrpcClient implements IRpcClient
 
     /**
      * 获取实例对象
-     *
-     * @return \Yurun\Util\YurunHttp\Http2\SwooleClient
      */
-    public function getInstance()
+    public function getInstance(): SwooleClient
     {
         return $this->http2Client;
     }
@@ -135,21 +115,17 @@ class GrpcClient implements IRpcClient
     /**
      * 获取服务对象
      *
-     * @param string $name 服务名
-     *
-     * @return \Imi\Rpc\Client\IService
+     * @param string|null $name 服务名
      */
-    public function getService($name = null): IService
+    public function getService(?string $name = null): IService
     {
         return BeanFactory::newInstance(GrpcService::class, $this, ...\func_get_args());
     }
 
     /**
      * 获取配置.
-     *
-     * @return array
      */
-    public function getOptions()
+    public function getOptions(): array
     {
         return $this->options;
     }
@@ -159,15 +135,9 @@ class GrpcClient implements IRpcClient
      *
      * $metadata 格式：['key' => ['value']]
      *
-     * @param string                            $package
-     * @param string                            $service
-     * @param string                            $name
-     * @param \Google\Protobuf\Internal\Message $message
-     * @param array                             $metadata
-     *
      * @return int|bool
      */
-    public function send($package, $service, $name, \Google\Protobuf\Internal\Message $message, $metadata = [])
+    public function send(string $package, string $service, string $name, \Google\Protobuf\Internal\Message $message, array $metadata = [])
     {
         $url = $this->buildRequestUrl($package, $service, $name);
         $content = Parser::serializeMessage($message);
@@ -187,14 +157,8 @@ class GrpcClient implements IRpcClient
 
     /**
      * 接收响应结果.
-     *
-     * @param string     $responseClass
-     * @param int        $streamId
-     * @param float|null $timeout
-     *
-     * @return \Google\Protobuf\Internal\Message
      */
-    public function recv($responseClass, $streamId = -1, $timeout = null)
+    public function recv(string $responseClass, int $streamId = -1, ?float $timeout = null): \Google\Protobuf\Internal\Message
     {
         $result = $this->http2Client->recv($streamId, $timeout);
         if (!$result || !$result->success)
@@ -212,14 +176,8 @@ class GrpcClient implements IRpcClient
 
     /**
      * 构建请求URL.
-     *
-     * @param string $package
-     * @param string $service
-     * @param string $name
-     *
-     * @return string
      */
-    public function buildRequestUrl($package, $service, $name)
+    public function buildRequestUrl(string $package, string $service, string $name): string
     {
         // @phpstan-ignore-next-line
         return preg_replace_callback('/\{([^\|\}]+)\|?([^\}]*)\}/', function ($match) use ($package, $service, $name) {

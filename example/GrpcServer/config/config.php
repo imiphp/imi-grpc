@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'configs'    => [
     ],
@@ -14,11 +16,11 @@ return [
                 \Imi\Server\Http\Middleware\RouteMiddleware::class,
             ],
         ],
-        'ConnectContextStore'   => [
-            'handlerClass'  => 'ConnectContextMemoryTable',
+        'ConnectionContextStore'   => [
+            'handlerClass'  => 'ConnectionContextMemoryTable',
         ],
-        'ConnectContextMemoryTable' => [
-            'tableName' => 'connectContext',
+        'ConnectionContextMemoryTable' => [
+            'tableName' => 'ConnectionContext',
         ],
         'ActionWrapMiddleware'  => [
             'actionMiddleware'  => 'GrpcActionMiddleware',

@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Imi\Grpc\Util;
 
 use Imi\Bean\Annotation\Bean;
 use Imi\Bean\ReflectionUtil;
+use phpDocumentor\Reflection\DocBlockFactory;
 use ReflectionClass;
 use ReflectionMethod;
 
@@ -14,30 +17,21 @@ class GrpcInterfaceManager
 {
     /**
      * 接口集合.
-     *
-     * @var array
      */
-    private $interfaces = [];
+    private array $interfaces = [];
 
     /**
      * DocBlockFactory.
-     *
-     * @var \phpDocumentor\Reflection\DocBlockFactory
      */
-    private $docBlockFactory;
+    private DocBlockFactory $docBlockFactory;
 
     public function __construct()
     {
-        $this->docBlockFactory = \phpDocumentor\Reflection\DocBlockFactory::createInstance();
+        $this->docBlockFactory = DocBlockFactory::createInstance();
     }
 
     /**
      * 获取请求类.
-     *
-     * @param string $interface
-     * @param string $method
-     *
-     * @return string
      */
     public function getRequest(string $interface, string $method): string
     {
@@ -51,11 +45,6 @@ class GrpcInterfaceManager
 
     /**
      * 获取响应类.
-     *
-     * @param string $interface
-     * @param string $method
-     *
-     * @return string
      */
     public function getResponse(string $interface, string $method): string
     {
@@ -69,12 +58,8 @@ class GrpcInterfaceManager
 
     /**
      * 初始化接口.
-     *
-     * @param string $interface
-     *
-     * @return void
      */
-    public function initInterface(string $interface)
+    public function initInterface(string $interface): void
     {
         $refClass = new ReflectionClass($interface);
         $data = [];

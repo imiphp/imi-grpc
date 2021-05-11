@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Imi\Grpc\Client;
 
 use Imi\Rpc\Client\Pool\RpcClientPool;
@@ -11,31 +13,20 @@ class ServiceAgent
 {
     /**
      * 连接池名称.
-     *
-     * @var string|null
      */
-    public $poolName;
+    public ?string $poolName;
 
     /**
      * 服务名称.
-     *
-     * @var string
      */
-    public $serviceName;
+    public string $serviceName;
 
     /**
      * 服务接口.
-     *
-     * @var string
      */
-    public $interface;
+    public string $interface;
 
-    /**
-     * @param string|null $poolName
-     * @param string      $serviceName
-     * @param string      $interface
-     */
-    public function __construct($poolName, $serviceName, $interface)
+    public function __construct(?string $poolName, string $serviceName, string $interface)
     {
         $this->poolName = $poolName;
         $this->serviceName = $serviceName;
@@ -43,9 +34,6 @@ class ServiceAgent
     }
 
     /**
-     * @param string $name
-     * @param array  $arguments
-     *
      * @return mixed
      */
     public function __call(string $name, array $arguments)

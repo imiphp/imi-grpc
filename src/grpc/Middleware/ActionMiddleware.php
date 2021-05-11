@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Imi\Grpc\Middleware;
 
 use Imi\Bean\Annotation\Bean;
@@ -9,6 +11,8 @@ use Imi\Grpc\Parser;
 use Imi\RequestContext;
 use Imi\Server\Annotation\ServerInject;
 use Imi\Server\Http\Message\Request;
+use Imi\Server\Http\Route\RouteResult;
+use Imi\Server\View\View;
 use Imi\Util\Http\Response;
 use Imi\Util\Stream\MemoryStream;
 use Psr\Http\Message\ResponseInterface;
@@ -23,25 +27,18 @@ class ActionMiddleware implements MiddlewareInterface
 {
     /**
      * @ServerInject("View")
-     *
-     * @var \Imi\Server\View\View
      */
-    protected $view;
+    protected View $view;
 
     /**
      * 动作方法参数缓存.
      *
      * @var \ReflectionParameter[]
      */
-    private $actionMethodParams = [];
+    private array $actionMethodParams = [];
 
     /**
      * 处理方法.
-     *
-     * @param ServerRequestInterface  $request
-     * @param RequestHandlerInterface $handler
-     *
-     * @return ResponseInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
@@ -58,7 +55,7 @@ class ActionMiddleware implements MiddlewareInterface
         }
         // 路由匹配结果是否是[控制器对象, 方法名]
         $isObject = \is_array($result->callable) && isset($result->callable[0]) && $result->callable[0] instanceof HttpController;
-        $useObjectRequestAndResponse = $isObject && !$result->routeItem->singleton;
+        $useObjectRequestAndResponse = $isObject;
         if ($useObjectRequestAndResponse)
         {
             // 复制一份控制器对象
@@ -118,13 +115,13 @@ class ActionMiddleware implements MiddlewareInterface
                 }
                 // 视图渲染
                 $options = $viewAnnotation->toArray();
-                $finalResponse = $this->view->render($viewAnnotation->renderType, $viewAnnotation->data, $options, $finalResponse);
+                $finalResponse = $this->view->render($viewAnnotation, $viewAnnotation->data, $options, $finalResponse);
             }
         }
 
         if (!$finalResponse->hasTrailer('grpc-status'))
         {
-            $finalResponse = $finalResponse->withTrailer('grpc-status', 0);
+            $finalResponse = $finalResponse->withTrailer('grpc-status', '0');
         }
 
         return $finalResponse;
@@ -132,12 +129,8 @@ class ActionMiddleware implements MiddlewareInterface
 
     /**
      * 准备调用action的参数.
-     *
-     * @param \Imi\Server\Http\Route\RouteResult $routeResult
-     *
-     * @return array
      */
-    private function prepareActionParams(Request $request, $routeResult)
+    private function prepareActionParams(Request $request, RouteResult $routeResult): array
     {
         // 根据动作回调类型获取反射
         if (\is_array($routeResult->callable))
