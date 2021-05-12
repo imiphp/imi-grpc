@@ -1,37 +1,38 @@
 <?php
+
 namespace Imi\Grpc\Client;
 
 use Imi\Bean\BeanFactory;
 use Imi\Grpc\Parser;
 use Imi\Log\Log;
-use Imi\Rpc\Client\IService;
 use Imi\Rpc\Client\IRpcClient;
+use Imi\Rpc\Client\IService;
 use Imi\Util\Http\Consts\MediaType;
 use Imi\Util\Uri;
 use Yurun\Util\HttpRequest;
 use Yurun\Util\YurunHttp\Http2\SwooleClient;
 
 /**
- * gRPC 客户端
+ * gRPC 客户端.
  */
 class GrpcClient implements IRpcClient
 {
     /**
-     * 配置
+     * 配置.
      *
      * @var array
      */
     protected $options;
 
     /**
-     * Http2 客户端
+     * Http2 客户端.
      *
      * @var \Yurun\Util\YurunHttp\Http2\SwooleClient
      */
     protected $http2Client;
 
     /**
-     * url
+     * url.
      *
      * @var string
      */
@@ -45,34 +46,34 @@ class GrpcClient implements IRpcClient
     protected $uri;
 
     /**
-     * 请求方法
+     * 请求方法.
      *
      * @var string
      */
     protected $requestMethod;
 
     /**
-     * 超时时间，单位：秒
+     * 超时时间，单位：秒.
      *
      * @var float
      */
     protected $timeout;
 
     /**
-     * HttpRequest
+     * HttpRequest.
      *
      * @var \Yurun\Util\HttpRequest
      */
     protected $httpRequest;
 
     /**
-     * 构造方法
+     * 构造方法.
      *
      * @param array $options 配置
      */
     public function __construct($options)
     {
-        if(!isset($options['url']))
+        if (!isset($options['url']))
         {
             throw new \InvalidArgumentException('Missing [url] parameter');
         }
@@ -85,22 +86,25 @@ class GrpcClient implements IRpcClient
 
     /**
      * 打开
-     * @return boolean
+     *
+     * @return bool
      */
     public function open()
     {
-        $this->httpRequest = new HttpRequest;
+        $this->httpRequest = new HttpRequest();
         $this->http2Client = new SwooleClient($this->uri->getHost(), Uri::getServerPort($this->uri), 'https' === $this->uri->getScheme());
         $result = $this->http2Client->connect();
-        if($result && $this->timeout)
+        if ($result && $this->timeout)
         {
             $this->http2Client->setTimeout($this->timeout);
         }
+
         return $result;
     }
 
     /**
-     * 关闭
+     * 关闭.
+     *
      * @return void
      */
     public function close()
@@ -109,7 +113,8 @@ class GrpcClient implements IRpcClient
     }
 
     /**
-     * 是否已连接
+     * 是否已连接.
+     *
      * @return bool
      */
     public function isConnected(): bool
@@ -131,15 +136,16 @@ class GrpcClient implements IRpcClient
      * 获取服务对象
      *
      * @param string $name 服务名
+     *
      * @return \Imi\Rpc\Client\IService
      */
     public function getService($name = null): IService
     {
-        return BeanFactory::newInstance(GrpcService::class, $this, ...func_get_args());
+        return BeanFactory::newInstance(GrpcService::class, $this, ...\func_get_args());
     }
 
     /**
-     * 获取配置
+     * 获取配置.
      *
      * @return array
      */
@@ -152,12 +158,13 @@ class GrpcClient implements IRpcClient
      * 发送请求
      *
      * $metadata 格式：['key' => ['value']]
-     * 
-     * @param string $package
-     * @param string $service
-     * @param string $name
+     *
+     * @param string                            $package
+     * @param string                            $service
+     * @param string                            $name
      * @param \Google\Protobuf\Internal\Message $message
-     * @param array $metadata
+     * @param array                             $metadata
+     *
      * @return int|bool
      */
     public function send($package, $service, $name, \Google\Protobuf\Internal\Message $message, $metadata = [])
@@ -167,57 +174,62 @@ class GrpcClient implements IRpcClient
         $request = $this->httpRequest->buildRequest($url, $content, $this->requestMethod)
         ->withHeader('Content-Type', MediaType::GRPC)
         ->withHeader('te', 'trailers');
-        if($metadata)
+        if ($metadata)
         {
-            foreach($metadata as $k => $v)
+            foreach ($metadata as $k => $v)
             {
                 $request = $request->withHeader($k, $v);
             }
         }
+
         return $this->http2Client->send($request);
     }
 
     /**
-     * 接收响应结果
+     * 接收响应结果.
      *
-     * @param string $responseClass
-     * @param int $streamId
-     * @param double|null $timeout
+     * @param string     $responseClass
+     * @param int        $streamId
+     * @param float|null $timeout
+     *
      * @return \Google\Protobuf\Internal\Message
      */
     public function recv($responseClass, $streamId = -1, $timeout = null)
     {
         $result = $this->http2Client->recv($streamId, $timeout);
-        if(!$result || !$result->success)
+        if (!$result || !$result->success)
         {
             throw new \RuntimeException(sprintf('gRPC recv() failed, errCode:%s, errorMsg:%s', $result->getErrno(), $result->getError()));
         }
         $return = Parser::deserializeMessage([$responseClass, 'decode'], $result->body());
-        if(!$return)
+        if (!$return)
         {
             Log::debug(sprintf('GrpcClient deserializeMessage failed. statusCode: %s', $result->getStatusCode()));
         }
+
         return $return;
     }
 
     /**
-     * 构建请求URL
+     * 构建请求URL.
      *
      * @param string $package
      * @param string $service
      * @param string $name
+     *
      * @return string
      */
     public function buildRequestUrl($package, $service, $name)
     {
-        return preg_replace_callback('/\{([^\|\}]+)\|?([^\}]*)\}/', function($match) use($package, $service, $name){
+        // @phpstan-ignore-next-line
+        return preg_replace_callback('/\{([^\|\}]+)\|?([^\}]*)\}/', function ($match) use ($package, $service, $name) {
             $value = ${$match[1]} ?? '';
-            if('' !== $match[2])
+            if ('' !== $match[2])
             {
                 $value = $match[2]($value);
             }
+
             return $value;
         }, $this->url);
     }
-
 }
