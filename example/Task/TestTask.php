@@ -1,9 +1,10 @@
 <?php
-namespace ImiApp\Task;
 
-use Imi\Task\TaskParam;
+namespace GrpcApp\Task;
+
 use Imi\Task\Annotation\Task;
 use Imi\Task\Interfaces\ITaskHandler;
+use Imi\Task\TaskParam;
 
 /**
  * @Task("Test1")
@@ -11,28 +12,32 @@ use Imi\Task\Interfaces\ITaskHandler;
 class TestTask implements ITaskHandler
 {
     /**
-     * 任务处理方法
-     * @param TaskParam $param
+     * 任务处理方法.
+     *
+     * @param TaskParam      $param
      * @param \Swoole\Server $server
-     * @param integer $taskID
-     * @param integer $WorkerID
-     * @return void
+     * @param int            $taskID
+     * @param int            $workerID
+     *
+     * @return mixed
      */
-    public function handle(TaskParam $param, \Swoole\Server $server, int $taskID, int $WorkerID)
+    public function handle(TaskParam $param, \Swoole\Server $server, int $taskID, int $workerID)
     {
         $data = $param->getData();
+
         return date('Y-m-d H:i:s', $data['time']);
     }
- 
+
     /**
-     * 任务结束时触发
+     * 任务结束时触发.
+     *
      * @param \swoole_server $server
-     * @param int $taskId
-     * @param mixed $data
+     * @param int            $taskID
+     * @param mixed          $data
+     *
      * @return void
      */
     public function finish(\Swoole\Server $server, int $taskID, $data)
     {
     }
-
 }

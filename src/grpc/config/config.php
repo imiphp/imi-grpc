@@ -1,6 +1,7 @@
 <?php
+
 return [
-    'beanScan'  =>  [
+    'beanScan'  => [
         'Imi\Grpc\Middleware',
         'Imi\Grpc\Util',
         'Imi\Grpc\Client',

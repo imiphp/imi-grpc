@@ -1,8 +1,9 @@
 <?php
+
 namespace Imi\Grpc\Enum;
 
 /**
- * 参考：https://grpc.github.io/grpc/core/md_doc_statuscodes.html
+ * 参考：https://grpc.github.io/grpc/core/md_doc_statuscodes.html.
  */
 abstract class GrpcStatus
 {
@@ -33,7 +34,7 @@ abstract class GrpcStatus
     /**
      * The deadline expired before the operation could complete.
      * For operations that change the state of the system, this error may be returned even if the operation has completed successfully.
-     * For example, a successful response from a server could have been delayed long
+     * For example, a successful response from a server could have been delayed long.
      */
     const DEADLINE_EXCEEDED = 4;
 
@@ -115,5 +116,4 @@ abstract class GrpcStatus
      * The request does not have valid authentication credentials for the operation.
      */
     const UNAUTHENTICATED = 16;
-
 }
