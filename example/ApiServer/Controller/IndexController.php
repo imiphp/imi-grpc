@@ -1,15 +1,13 @@
 <?php
-namespace ImiApp\ApiServer\Controller;
+
+namespace GrpcApp\ApiServer\Controller;
 
 use Grpc\LoginRequest;
-use Grpc\LoginResponse;
-use Imi\Aop\Annotation\Inject;
 use Imi\Controller\HttpController;
-use Imi\Rpc\Annotation\RpcService;
-use Imi\Server\Route\Annotation\Route;
-use Imi\Server\Route\Annotation\Action;
 use Imi\Grpc\Client\Annotation\GrpcService;
+use Imi\Server\Route\Annotation\Action;
 use Imi\Server\Route\Annotation\Controller;
+use Imi\Server\Route\Annotation\Route;
 
 /**
  * @Controller("/")
@@ -27,7 +25,7 @@ class IndexController extends HttpController
      * @Action
      * @Route("/")
      *
-     * @return void
+     * @return mixed
      */
     public function index()
     {
@@ -35,27 +33,31 @@ class IndexController extends HttpController
     }
 
     /**
-     * 测试登录
+     * 测试登录.
+     *
      * @Action
-     * 
+     *
      * @param string $phone
      * @param string $password
-     * @return void
+     *
+     * @return mixed
      */
     public function testLogin($phone, $password)
     {
         $request = new LoginRequest();
         $request->setPhone($phone);
         $request->setPassword($password);
+        // @phpstan-ignore-next-line
         $response = $this->authService->login($request, \Grpc\LoginResponse::class);
-        if(!$response)
+        // @phpstan-ignore-next-line
+        if (!$response)
         {
             throw new \RuntimeException('GG');
         }
+
         return [
-            'success'   =>  $response->getSuccess(),
-            'error'     =>  $response->getError(),
+            'success'   => $response->getSuccess(),
+            'error'     => $response->getError(),
         ];
     }
-
 }

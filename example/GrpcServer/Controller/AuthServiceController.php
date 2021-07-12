@@ -1,11 +1,11 @@
 <?php
-namespace ImiApp\GrpcServer\Controller;
 
+namespace GrpcApp\GrpcServer\Controller;
+
+use Grpc\AuthServiceInterface;
 use Grpc\LoginRequest;
 use Grpc\LoginResponse;
-use Grpc\AuthServiceInterface;
 use Imi\Controller\HttpController;
-use Imi\Server\Route\Annotation\Route;
 use Imi\Server\Route\Annotation\Action;
 use Imi\Server\Route\Annotation\Controller;
 
@@ -15,20 +15,21 @@ use Imi\Server\Route\Annotation\Controller;
 class AuthServiceController extends HttpController implements AuthServiceInterface
 {
     /**
-     * Method <code>login</code>
+     * Method <code>login</code>.
      *
      * @Action
-     * 
+     *
      * @param \Grpc\LoginRequest $request
+     *
      * @return \Grpc\LoginResponse
      */
-    public function login(\Grpc\LoginRequest $request)
+    public function login(LoginRequest $request)
     {
-        $response = new LoginResponse;
+        $response = new LoginResponse();
         $success = '12345678901' === $request->getPhone() && '123456' === $request->getPassword();
         $response->setSuccess($success);
         $response->setError($success ? '' : '登录失败');
+
         return $response;
     }
-
 }

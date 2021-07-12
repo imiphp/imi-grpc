@@ -1,11 +1,12 @@
 <?php
+
 namespace Imi\Server\Grpc\Error;
 
 use Imi\Grpc\Enum\GrpcStatus;
 use Imi\RequestContext;
-use Imi\Util\Http\Consts\RequestHeader;
 use Imi\Server\Http\Error\IErrorHandler;
 use Imi\Util\Http\Consts\MediaType;
+use Imi\Util\Http\Consts\RequestHeader;
 
 class DefaultGrpcErrorHandler implements IErrorHandler
 {
@@ -14,26 +15,27 @@ class DefaultGrpcErrorHandler implements IErrorHandler
         /** @var \Imi\Server\Http\Message\Response $response */
         $response = RequestContext::get('response');
         $response = $response->withHeader(RequestHeader::CONTENT_TYPE, MediaType::GRPC_PROTO);
-        if(!$response->getHeaderLine(RequestHeader::TRAILER))
+        if (!$response->getHeaderLine(RequestHeader::TRAILER))
         {
             $response = $response->withAddedHeader(RequestHeader::TRAILER, 'grpc-status, grpc-message');
         }
-        if(!$response->getTrailer('grpc-status'))
+        if (!$response->getTrailer('grpc-status'))
         {
-            $response = $response->withTrailer('grpc-status', $this->getGrpcStatus($throwable));
+            $response = $response->withTrailer('grpc-status', (string) $this->getGrpcStatus($throwable));
         }
-        if(!$response->getTrailer('grpc-message'))
+        if (!$response->getTrailer('grpc-message'))
         {
             $response = $response->withTrailer('grpc-message', $this->getGrpcMessage($throwable));
         }
         $response->send();
+
         return false;
     }
 
-    private function getGrpcStatus(\Throwable $throwable)
+    private function getGrpcStatus(\Throwable $throwable): int
     {
-        $class = get_class($throwable);
-        switch($class)
+        $class = \get_class($throwable);
+        switch ($class)
         {
             case \BadFunctionCallException::class:
                 return GrpcStatus::UNKNOWN;
@@ -66,9 +68,8 @@ class DefaultGrpcErrorHandler implements IErrorHandler
         }
     }
 
-    private function getGrpcMessage(\Throwable $throwable)
+    private function getGrpcMessage(\Throwable $throwable): string
     {
         return $throwable->getMessage();
     }
-
 }
