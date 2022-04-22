@@ -22,17 +22,17 @@ class GrpcClient implements IRpcClient
     /**
      * 配置.
      */
-    protected array $options;
+    protected array $options = [];
 
     /**
      * Http2 客户端.
      */
-    protected SwooleClient $http2Client;
+    protected ?SwooleClient $http2Client = null;
 
     /**
      * url.
      */
-    protected string $url;
+    protected string $url = '';
 
     /**
      * uri 对象
@@ -42,12 +42,12 @@ class GrpcClient implements IRpcClient
     /**
      * 请求方法.
      */
-    protected string $requestMethod;
+    protected string $requestMethod = '';
 
     /**
      * 超时时间，单位：秒.
      */
-    protected ?float $timeout;
+    protected ?float $timeout = null;
 
     /**
      * HttpRequest.
@@ -68,7 +68,10 @@ class GrpcClient implements IRpcClient
         $this->url = $options['url'];
         $this->uri = new Uri($this->url);
         $this->requestMethod = $options['method'] ?? 'GET';
-        $this->timeout = $options['timeout'] ?? null;
+        if (isset($options['timeout']))
+        {
+            $this->timeout = (float) $options['timeout'];
+        }
         $this->options = $options;
     }
 
@@ -177,21 +180,29 @@ class GrpcClient implements IRpcClient
     /**
      * 接收响应结果.
      */
-    public function recv(string $responseClass, int $streamId = -1, ?float $timeout = null): \Google\Protobuf\Internal\Message
+    public function recv(string $responseClass, int $streamId = -1, ?float $timeout = null, ?\Yurun\Util\YurunHttp\Http\Response &$response = null): \Google\Protobuf\Internal\Message
     {
         if (!$this->isConnected())
         {
             throw new \RuntimeException('GrpcClient not connected');
         }
         $result = $this->http2Client->recv($streamId, $timeout);
-        if (!$result || !$result->success)
+        if ($result)
         {
-            throw new \RuntimeException(sprintf('gRPC recv() failed, errCode:%s, errorMsg:%s', $result->getErrno(), $result->getError()));
+            $response = $result;
+        }
+        if (!$result)
+        {
+            throw new \RuntimeException('gRPC recv() failed');
+        }
+        if (!$result->success)
+        {
+            throw new \RuntimeException(sprintf('gRPC recv() failed, statusCode: %s, errCode:%s, errorMsg:%s', $result->getStatusCode(), $result->getErrno(), $result->getError()));
         }
         $return = Parser::deserializeMessage([$responseClass, 'decode'], $result->body());
         if (!$return)
         {
-            Log::debug(sprintf('GrpcClient deserializeMessage failed. statusCode: %s', $result->getStatusCode()));
+            Log::debug(sprintf('GrpcClient deserializeMessage failed. statusCode: %s, errCode:%s, errorMsg:%s', $result->getStatusCode(), $result->getErrno(), $result->getError()));
         }
 
         return $return;

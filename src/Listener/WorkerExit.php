@@ -15,7 +15,7 @@ use Imi\Swoole\Util\Coroutine;
 
 /**
  * @Listener(eventName="IMI.MAIN_SERVER.WORKER.EXIT", priority=Imi\Util\ImiPriority::IMI_MIN)
- * @Listener("IMI.PROCESS.END", priority=Imi\Util\ImiPriority::IMI_MIN)
+ * @Listener("IMI.PROCESS.END", priority=-19940311)
  */
 class WorkerExit implements IEventListener
 {
@@ -24,10 +24,10 @@ class WorkerExit implements IEventListener
      */
     public function handle(EventParam $e): void
     {
+        $inCo = Coroutine::isIn();
         foreach (PoolManager::getNames() as $name)
         {
             $pool = PoolManager::getInstance($name);
-            $inCo = Coroutine::isIn();
             if (($pool instanceof RpcClientSyncPool || $pool instanceof RpcClientCoroutinePool) && (GrpcClient::class === ($pool->getResourceConfig()[0]['clientClass'] ?? null)))
             {
                 if ($inCo)

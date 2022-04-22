@@ -11,8 +11,10 @@ use Google\Protobuf\Internal\Message;
  *
  * 参考实现：https://www.jianshu.com/p/f3221df39e6f
  */
-abstract class Parser
+class Parser
 {
+    use \Imi\Util\Traits\TStaticClass;
+
     public static function pack(string $data): string
     {
         return $data = pack('CN', 0, \strlen($data)) . $data;
@@ -62,7 +64,7 @@ abstract class Parser
             $obj = new $className();
             if ($deserializeFunc && method_exists($obj, $deserializeFunc))
             {
-                $obj->$deserializeFunc($value);
+                $obj->{$deserializeFunc}($value);
             }
             else
             {
@@ -72,7 +74,7 @@ abstract class Parser
             return $obj;
         }
 
-        return \call_user_func($deserialize, $value);
+        return $deserialize($value);
     }
 
     /**
