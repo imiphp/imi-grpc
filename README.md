@@ -70,10 +70,9 @@ protoc 下载和安装：<https://github.com/protocolbuffers/protobuf/releases>
 
 ```php
 [
-    'components'    =>  [
-        // 引入RPC组件以及本组件
-        'Rpc'   =>  'Imi\Rpc',
-        'Grpc'  =>  'Imi\Grpc',
+    'ignorePaths' => [
+        // 添加RPC忽略目录
+        \dirname(__DIR__) . \DIRECTORY_SEPARATOR . 'grpc',
     ],
 ]
 ```
@@ -125,7 +124,7 @@ class AuthServiceController extends HttpController implements AuthServiceInterfa
      * Method <code>login</code>
      *
      * @Action
-     * 
+     *
      * @param \Grpc\LoginRequest $request
      * @return \Grpc\LoginResponse
      */
@@ -181,8 +180,8 @@ class AuthServiceController extends HttpController implements AuthServiceInterfa
 代码调用：
 
 ```php
-// $service = \Imi\Rpc\Client\Pool\RpcClientPool::getClient('连接池名')->getService('服务名', '生成出来的服务接口类名');
-$service = \Imi\Rpc\Client\Pool\RpcClientPool::getClient()->getService('AuthService', \Grpc\AuthServiceInterface::class);
+// $service = \Imi\Rpc\Client\Pool\RpcClientPool::getInstance('连接池名')->getService('服务名', '生成出来的服务接口类名');
+$service = \Imi\Rpc\Client\Pool\RpcClientPool::getInstance()->getService('AuthService', \Grpc\AuthServiceInterface::class);
 $request = new \Grpc\LoginRequest;
 $request->setPhone('');
 $service->login($request);
